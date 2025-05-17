@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Alocação Inteligente</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .panel {
+            flex: 1;
+            min-width: 300px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+        }
+        .lab1 {
+            background-color: #e6ffe6;
+        }
+        .lab2 {
+            background-color: #ffe6e6;
+        }
+        .lab3 {
+            background-color: #ffffe6;
+        }
+        .priority1 {
+            font-weight: bold;
+            color: #006400;
+        }
+        .priority2 {
+            font-weight: bold;
+            color: #8B4513;
+        }
+        .priority3 {
+            font-weight: bold;
+            color: #4B0082;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        select, input {
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        .day-tab {
+            margin-bottom: 20px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .tab-button {
+            padding: 8px 15px;
+            background-color: #ddd;
+            border: none;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .tab-button.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .horario-option {
+            margin-right: 10px;
+            display: inline-block;
+        }
+        .materia-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sistema de Alocação Inteligente de Laboratórios</h1>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>1. Cadastrar Matérias</h2>
+            
+            <div id="materiaForm">
+                <label>Matéria: <input type="text" id="materia"></label><br>
+                <label>Professor: <input type="text" id="professor"></label><br>
+                <label>Turma: <input type="text" id="turma"></label><br>
+                <label>Prioridade: 
+                    <select id="prioridade">
+                        <option value="1">1 (Lab1 - Prioritário)</option>
+                        <option value="2">2 (Lab1 ou Lab2)</option>
+                        <option value="3">3 (Qualquer laboratório)</option>
+                    </select>
+                </label><br>
+                <label>Aulas necessárias no laboratório: 
+                    <input type="number" id="aulasLab" min="1" value="1">
+                </label><br>
+                
+                <h3>Horários Possíveis</h3>
+                <div id="horariosPossiveis">
+                    <!-- Aqui serão adicionados os horários -->
+                </div>
+                <button onclick="adicionarHorario()">+ Adicionar Horário Possível</button><br>
+                
+                <button onclick="adicionarMateria()">Adicionar Matéria</button>
+            </div>
+            
+            <h3>Matérias Cadastradas</h3>
+            <div id="materiasCadastradas">
+                <!-- As matérias serão listadas aqui -->
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>2. Alocação Automática</h2>
+            <button onclick="alocarAulas()">Otimizar e Alocar Aulas</button>
+            
+            <div class="tab-buttons" id="dayTabs">
+                <button class="tab-button active" onclick="openDay('segunda')">Segunda</button>
+                <button class="tab-button" onclick="openDay('terca')">Terça</button>
+                <button class="tab-button" onclick="openDay('quarta')">Quarta</button>
+                <button class="tab-button" onclick="openDay('quinta')">Quinta</button>
+                <button class="tab-button" onclick="openDay('sexta')">Sexta</button>
+            </div>
+            
+            <div id="resultado">
+                <!-- As tabelas por dia serão inseridas aqui -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados globais
+        const materias = [];
+        const dias = ['segunda', 'terca', 'quarta', 'quinta', 'sexta'];
+        const horariosDisponiveis = ['7:15-8:05', '8:05-8:55', '8:55-10:00', '10:00-10:50', '10:50-11:40', '13:15-14:05', '14:05-14:55', '14:55-15:45', '15:45-16:45'];
+        
+        // Contador para horários possíveis
+        let horarioCounter = 0;
+        
+        // Adicionar opção de horário possível
+        function adicionarHorario() {
+            const container = document.getElementById('horariosPossiveis');
+            const div = document.createElement('div');
+            div.className = 'horario-option';
+            div.id = `horario-${horarioCounter}`;
+            
+            div.innerHTML = `
+                <label>Dia: 
+                    <select id="dia-${horarioCounter}">
+                        <option value="segunda">Segunda</option>
+                        <option value="terca">Terça</option>
+                        <option value="quarta">Quarta</option>
+                        <option value="quinta">Quinta</option>
+                        <option value="sexta">Sexta</option>
+                    </select>
+                </label>
+                <label>Horário: 
+                    <select id="horario-${horarioCounter}">
+                        ${horariosDisponiveis.map(h => `<option value="${h}">${h}</option>`).join('')}
+                    </select>
+                </label>
+                <button onclick="removerHorario('horario-${horarioCounter}')">Remover</button>
+            `;
+            
+            container.appendChild(div);
+            horarioCounter++;
+        }
+        
+        // Remover opção de horário
+        function removerHorario(id) {
+            const element = document.getElementById(id);
+            if (element) element.remove();
+        }
+        
+        // Adicionar uma nova matéria
+        function adicionarMateria() {
+            const materia = document.getElementById('materia').value;
+            const professor = document.getElementById('professor').value;
+            const turma = document.getElementById('turma').value;
+            const prioridade = parseInt(document.getElementById('prioridade').value);
+            const aulasLab = parseInt(document.getElementById('aulasLab').value);
+            
+            // Coletar horários possíveis
+            const horariosPossiveis = [];
+            const horarioElements = document.querySelectorAll('[id^="horario-"]');
+            
+            horarioElements.forEach(el => {
+                const id = el.id.split('-')[1];
+                const dia = document.getElementById(`dia-${id}`).value;
+                const horario = document.getElementById(`horario-${id}`).value;
+                horariosPossiveis.push({ dia, horario });
+            });
+            
+            if (!materia || !professor || !turma) {
+                alert('Preencha todos os campos obrigatórios!');
+                return;
+            }
+            
+            if (horariosPossiveis.length === 0) {
+                alert('Adicione pelo menos um horário possível!');
+                return;
+            }
+            
+            if (aulasLab > horariosPossiveis.length) {
+                alert('O número de aulas em laboratório não pode ser maior que os horários possíveis!');
+                return;
+            }
+            
+            materias.push({
+                id: Date.now(),
+                materia,
+                professor,
+                turma,
+                prioridade,
+                aulasLab,
+                horariosPossiveis,
+                horariosAlocados: []
+            });
+            
+            atualizarListaMaterias();
+            limparFormulario();
+        }
+        
+        // Atualizar lista de matérias cadastradas
+        function atualizarListaMaterias() {
+            const container = document.getElementById('materiasCadastradas');
+            container.innerHTML = '';
+            
+            materias.forEach(mat => {
+                const div = document.createElement('div');
+                div.className = 'materia-item';
+                
+                div.innerHTML = `
+                    <h4>${mat.materia} - ${mat.turma}</h4>
+                    <p><strong>Professor:</strong> ${mat.professor}</p>
+                    <p><strong>Prioridade:</strong> ${mat.prioridade}</p>
+                    <p><strong>Aulas no lab:</strong> ${mat.aulasLab} de ${mat.horariosPossiveis.length} possíveis</p>
+                    <p><strong>Horários possíveis:</strong> 
+                        ${mat.horariosPossiveis.map(h => `${h.dia} ${h.horario}`).join(', ')}
+                    </p>
+                    <button onclick="removerMateria(${mat.id})">Remover</button>
+                `;
+                
+                container.appendChild(div);
+            });
+        }
+        
+        // Remover matéria
+        function removerMateria(id) {
+            const index = materias.findIndex(mat => mat.id === id);
+            if (index !== -1) {
+                materias.splice(index, 1);
+                atualizarListaMaterias();
+            }
+        }
+        
+        // Limpar formulário
+        function limparFormulario() {
+            document.getElementById('materia').value = '';
+            document.getElementById('professor').value = '';
+            document.getElementById('turma').value = '';
+            document.getElementById('aulasLab').value = '1';
+            document.getElementById('horariosPossiveis').innerHTML = '';
+            horarioCounter = 0;
+        }
+        
+        // Alocar aulas automaticamente com otimização
+        function alocarAulas() {
+            // Inicializar laboratórios para cada dia
+            const grade = {};
+            dias.forEach(dia => {
+                grade[dia] = {
+                    lab1: {},
+                    lab2: {},
+                    lab3: {}
+                };
+                
+                // Inicializar todos os horários como disponíveis
+                horariosDisponiveis.forEach(horario => {
+                    grade[dia].lab1[horario] = null;
+                    grade[dia].lab2[horario] = null;
+                    grade[dia].lab3[horario] = null;
+                });
+            });
+            
+            // Resetar horários alocados
+            materias.forEach(mat => {
+                mat.horariosAlocados = [];
+            });
+            
+            // Ordenar matérias por prioridade (1 primeiro) e número de aulas necessárias
+            const materiasOrdenadas = [...materias].sort((a, b) => {
+                if (a.prioridade !== b.prioridade) return a.prioridade - b.prioridade;
+                return b.aulasLab - a.aulasLab; // Matérias com mais aulas no lab primeiro
+            });
+            
+            // Tentativa de alocação
+            let tentativas = 0;
+            const maxTentativas = 100;
+            let alocacaoCompleta = false;
+            
+            while (tentativas < maxTentativas && !alocacaoCompleta) {
+                tentativas++;
+                alocacaoCompleta = true;
+                
+                // Tentar alocar cada matéria
+                for (const mat of materiasOrdenadas) {
+                    if (mat.horariosAlocados.length >= mat.aulasLab) continue;
+                    
+                    // Filtrar horários possíveis não alocados ainda
+                    const horariosDisponiveis = mat.horariosPossiveis.filter(h => {
+                        return !mat.horariosAlocados.some(a => a.dia === h.dia && a.horario === h.horario);
+                    });
+                    
+                    // Tentar alocar em um horário disponível
+                    let alocou = false;
+                    for (const hp of shuffleArray(horariosDisponiveis)) {
+                        if (tentarAlocarHorario(mat, hp, grade)) {
+                            alocou = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!alocou) {
+                        alocacaoCompleta = false;
+                        
+                        // Tentar desalocar uma matéria de prioridade menor para liberar espaço
+                        if (tentativas > 50) {
+                            desalocarParaLiberarEspaco(mat, grade);
+                        }
+                    }
+                }
+            }
+            
+            if (!alocacaoCompleta) {
+                alert('Não foi possível alocar todas as aulas satisfatoriamente após várias tentativas. Algumas aulas podem estar faltando.');
+            }
+            
+            // Exibir resultado
+            exibirResultado(grade);
+        }
+        
+        // Função para tentar alocar em um horário específico
+        function tentarAlocarHorario(mat, hp, grade) {
+            const lab1Disponivel = !grade[hp.dia].lab1[hp.horario];
+            const lab2Disponivel = !grade[hp.dia].lab2[hp.horario];
+            const lab3Disponivel = !grade[hp.dia].lab3[hp.horario];
+            
+            // Verificar se o professor já está alocado nesse horário
+            const professorOcupado = Object.values(grade[hp.dia]).some(lab => {
+                const aula = lab[hp.horario];
+                return aula && aula.professor === mat.professor;
+            });
+            
+            if (professorOcupado) return false;
+            
+            // Tentar alocar conforme prioridade
+            if (mat.prioridade === 1 && lab1Disponivel) {
+                grade[hp.dia].lab1[hp.horario] = mat;
+                mat.horariosAlocados.push(hp);
+                return true;
+            } 
+            else if (mat.prioridade === 2 && lab1Disponivel) {
+                grade[hp.dia].lab1[hp.horario] = mat;
+                mat.horariosAlocados.push(hp);
+                return true;
+            } 
+            else if (mat.prioridade === 2 && lab2Disponivel) {
+                grade[hp.dia].lab2[hp.horario] = mat;
+                mat.horariosAlocados.push(hp);
+                return true;
+            } 
+            else if (mat.prioridade === 3 && lab1Disponivel) {
+                grade[hp.dia].lab1[hp.horario] = mat;
+                mat.horariosAlocados.push(hp);
+                return true;
+            } 
+            else if (mat.prioridade === 3 && lab2Disponivel) {
+                grade[hp.dia].lab2[hp.horario] = mat;
+                mat.horariosAlocados.push(hp);
+                return true;
+            } 
+            else if (mat.prioridade === 3 && lab3Disponivel) {
+                grade[hp.dia].lab3[hp.horario] = mat;
+                mat.horariosAlocados.push(hp);
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // Função para desalocar matérias de menor prioridade para liberar espaço
+        function desalocarParaLiberarEspaco(mat, grade) {
+            // Encontrar matérias de prioridade menor que podem ser desalocadas
+            for (const hp of mat.horariosPossiveis) {
+                // Verificar Lab1
+                const aulaLab1 = grade[hp.dia].lab1[hp.horario];
+                if (aulaLab1 && aulaLab1.prioridade > mat.prioridade) {
+                    // Desalocar e tentar realocar depois
+                    const index = aulaLab1.horariosAlocados.findIndex(a => a.dia === hp.dia && a.horario === hp.horario);
+                    if (index !== -1) {
+                        aulaLab1.horariosAlocados.splice(index, 1);
+                        grade[hp.dia].lab1[hp.horario] = null;
+                        return true;
+                    }
+                }
+                
+                // Verificar Lab2
+                const aulaLab2 = grade[hp.dia].lab2[hp.horario];
+                if (aulaLab2 && aulaLab2.prioridade > mat.prioridade) {
+                    const index = aulaLab2.horariosAlocados.findIndex(a => a.dia === hp.dia && a.horario === hp.horario);
+                    if (index !== -1) {
+                        aulaLab2.horariosAlocados.splice(index, 1);
+                        grade[hp.dia].lab2[hp.horario] = null;
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+        }
+        
+        // Função para embaralhar array (usada para tentativas aleatórias)
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+        
+        // Exibir resultado por dia
+        function exibirResultado(grade) {
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.innerHTML = '';
+            
+            dias.forEach(dia => {
+                const diaDiv = document.createElement('div');
+                diaDiv.className = `tab-content ${dia === 'segunda' ? 'active' : ''}`;
+                diaDiv.id = `${dia}-tab`;
+                
+                let html = `
+                    <h3>${dia.charAt(0).toUpperCase() + dia.slice(1)}</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Horário</th>
+                                <th>Laboratório 1 (Prioritário)</th>
+                                <th>Laboratório 2</th>
+                                <th>Laboratório Móvel (Tablets)</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                
+                horariosDisponiveis.forEach(horario => {
+                    const aulaLab1 = grade[dia].lab1[horario];
+                    const aulaLab2 = grade[dia].lab2[horario];
+                    const aulaLab3 = grade[dia].lab3[horario];
+                    
+                    html += `<tr>
+                        <td>${horario}</td>
+                        <td class="lab1">${formatarAula(aulaLab1)}</td>
+                        <td class="lab2">${formatarAula(aulaLab2)}</td>
+                        <td class="lab3">${formatarAula(aulaLab3)}</td>
+                    </tr>`;
+                });
+                
+                html += `</tbody></table>`;
+                diaDiv.innerHTML = html;
+                resultadoDiv.appendChild(diaDiv);
+            });
+        }
+        
+        function formatarAula(aula) {
+            if (!aula) return 'Disponível';
+            
+            const classePrioridade = `priority${aula.prioridade}`;
+            return `
+                <span class="${classePrioridade}">
+                    ${aula.turma} - ${aula.materia}<br>
+                    <small>Prof. ${aula.professor}</small>
+                </span>
+            `;
+        }
+        
+        // Navegação entre abas de dias
+        function openDay(day) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(`${day}-tab`).classList.add('active');
+            document.querySelector(`.tab-button[onclick="openDay('${day}')"]`).classList.add('active');
+        }
+        
+        // Adicionar um horário inicial ao carregar a página
+        window.onload = adicionarHorario;
+    </script>
+</body>
+</html>
