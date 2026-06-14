@@ -1,0 +1,190 @@
+* {
+    box-sizing: border-box;
+    font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+    background: #f0f2f5;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+h1 {
+    text-align: center;
+    color: #1e3c72;
+    margin-bottom: 20px;
+}
+
+.upload-area {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+}
+
+.upload-card {
+    background: white;
+    border-radius: 16px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    flex: 1;
+}
+
+.upload-card h3 {
+    margin-top: 0;
+    font-size: 1.1rem;
+}
+
+.upload-card input {
+    margin: 12px 0 8px;
+}
+
+.status {
+    font-size: 0.85rem;
+    color: #2c3e50;
+    background: #eef2f7;
+    padding: 6px 10px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+button {
+    background: #2c3e50;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    font-size: 1rem;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: 0.2s;
+    font-weight: 600;
+}
+button:hover:not(:disabled) {
+    background: #1a2b3c;
+    transform: scale(1.02);
+}
+button:disabled {
+    background: #b0c4de;
+    cursor: not-allowed;
+}
+
+.dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
+.panel {
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    overflow: hidden;
+    flex: 1;
+    min-width: 320px;
+}
+
+.panel h2 {
+    background: #1e3c72;
+    color: white;
+    margin: 0;
+    padding: 12px 20px;
+    font-size: 1.2rem;
+}
+
+.lista-aulas {
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 12px;
+}
+
+.aula-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border-left: 5px solid #90be6d;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    transition: 0.1s;
+}
+.aula-item.alocada {
+    background: #e9f5e9;
+    border-left-color: #2e7d32;
+    text-decoration: line-through;
+    opacity: 0.8;
+}
+.aula-info {
+    flex: 1;
+}
+.aula-prioridade {
+    font-weight: bold;
+    background: #ddd;
+    padding: 2px 8px;
+    border-radius: 30px;
+    font-size: 0.7rem;
+    margin-left: 8px;
+}
+.prioridade-l1 { background: #ffcdd2; color: #b71c1c; }
+.prioridade-tablets { background: #bbdefb; color: #0d47a1; }
+.prioridade-outro { background: #e0e0e0; }
+
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 30px;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+.badge.l1 { background: #ffcdd2; color: #b71c1c; }
+.badge.tablets { background: #bbdefb; color: #0d47a1; }
+.badge.normal { background: #e0e0e0; }
+
+.tabela-container {
+    overflow-x: auto;
+    max-height: 600px;
+    overflow-y: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+th, td {
+    border: 1px solid #ccc;
+    padding: 6px 8px;
+    text-align: left;
+    vertical-align: top;
+}
+th {
+    background: #e9ecef;
+    position: sticky;
+    top: 0;
+}
+td {
+    background-color: white;
+    word-break: break-word;
+}
+tr:nth-child(even) td {
+    background-color: #f9f9f9;
+}
+
+.legenda {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: #f1f3f4;
+    border-radius: 16px;
+    font-size: 0.7rem;
+}
